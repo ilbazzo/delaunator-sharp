@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace DelaunatorSharp
 {
@@ -400,22 +401,42 @@ namespace DelaunatorSharp
 
             return ar;
         }
+
+        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool InCircle(float ax, float ay, float bx, float by, float cx, float cy, float px, float py)
         {
-            var dx = ax - px;
-            var dy = ay - py;
-            var ex = bx - px;
-            var ey = by - py;
-            var fx = cx - px;
-            var fy = cy - py;
+            var a = new Vector2(ax, ay);
+            var b = new Vector2(bx, by);
+            var c = new Vector2(cx, cy);
+            var p = new Vector2(px, py);
 
-            var ap = dx * dx + dy * dy;
-            var bp = ex * ex + ey * ey;
-            var cp = fx * fx + fy * fy;
+            var d = a - p;
+            var e = b - p;
+            var f = c - p;
 
-            return dx * (ey * cp - bp * fy) -
-                   dy * (ex * cp - bp * fx) +
-                   ap * (ex * fy - ey * fx) < 0;
+            var ap = d.LengthSquared();
+            var bp = e.LengthSquared();
+            var cp = f.LengthSquared();
+
+            return d.X * (e.Y * cp - bp * f.Y) -
+                   d.Y * (e.X * cp - bp * f.X) +
+                   ap * (e.X * f.Y - e.Y * f.X) < 0;
+
+
+            //var dx = ax - px;
+            //var dy = ay - py;
+            //var ex = bx - px;
+            //var ey = by - py;
+            //var fx = cx - px;
+            //var fy = cy - py;
+
+            //var ap = dx * dx + dy * dy;
+            //var bp = ex * ex + ey * ey;
+            //var cp = fx * fx + fy * fy;
+
+            //return dx * (ey * cp - bp * fy) -
+            //       dy * (ex * cp - bp * fx) +
+            //       ap * (ex * fy - ey * fx) < 0;
         }
         private int AddTriangle(int i0, int i1, int i2, int a, int b, int c)
         {
@@ -490,6 +511,8 @@ namespace DelaunatorSharp
                 }
             }
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Swap(int[] arr, int i, int j)
         {
             var tmp = arr[i];

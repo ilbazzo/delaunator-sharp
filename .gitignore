@@ -77,3 +77,5 @@ crashlytics-build.properties
 /DelaunatorSharp.WPF/obj
 /DelaunatorSharp.Benchmark/obj
 DelaunatorSharp.Benchmark/bin/
+Profile/bin/
+Profile/obj/
