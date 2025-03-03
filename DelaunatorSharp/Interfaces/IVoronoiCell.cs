@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Numerics;
 
 namespace DelaunatorSharp
 {
     public interface IVoronoiCell
     {
-        IPoint[] Points { get; }
+        Vector2[] Points { get; }
         int Index { get; }
     }
 }

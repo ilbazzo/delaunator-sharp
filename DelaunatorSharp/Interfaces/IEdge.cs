@@ -1,9 +1,11 @@
-﻿namespace DelaunatorSharp
+﻿using System.Numerics;
+
+namespace DelaunatorSharp
 {
     public interface IEdge
     {
-        IPoint P { get; }
-        IPoint Q { get; }
+        Vector2 P { get; }
+        Vector2 Q { get; }
         int Index { get; }
     }
 }

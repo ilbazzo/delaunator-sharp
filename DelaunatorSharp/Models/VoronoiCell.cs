@@ -1,10 +1,12 @@
-﻿namespace DelaunatorSharp
+﻿using System.Numerics;
+
+namespace DelaunatorSharp
 {
     public struct VoronoiCell : IVoronoiCell
     {
-        public IPoint[] Points { get; set; }
+        public Vector2[] Points { get; set; }
         public int Index { get; set; }
-        public VoronoiCell(int triangleIndex, IPoint[] points)
+        public VoronoiCell(int triangleIndex, Vector2[] points)
         {
             Points = points;
             Index = triangleIndex;

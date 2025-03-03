@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Numerics;
 
 namespace DelaunatorSharp
 {
@@ -6,9 +7,9 @@ namespace DelaunatorSharp
     {
         public int Index { get; set; }
 
-        public IEnumerable<IPoint> Points { get; set; }
+        public IEnumerable<Vector2> Points { get; set; }
 
-        public Triangle(int t, IEnumerable<IPoint> points)
+        public Triangle(int t, IEnumerable<Vector2> points)
         {
             Points = points;
             Index = t;

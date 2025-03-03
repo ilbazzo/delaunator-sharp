@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using SlimDX;
+using System.Numerics;
 
 namespace DelaunatorSharp.WPF
 {

@@ -2,15 +2,16 @@
 using BenchmarkDotNet.Engines;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace DelaunatorSharp.Benchmark
 {
-    [SimpleJob(RunStrategy.ColdStart, warmupCount:10, targetCount: 10)]
+    [SimpleJob(RunStrategy.ColdStart, warmupCount:10, iterationCount: 10)]
     [HtmlExporter]
     public class GetVoronoiCellsBenchmark
     {
         private Distribution distribution = new Distribution();
-        private IPoint[] points;
+        private Vector2[] points;
 
         [Params(5000)]
         public int Count;

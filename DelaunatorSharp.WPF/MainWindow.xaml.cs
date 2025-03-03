@@ -1,5 +1,4 @@
 ﻿using Microsoft.Win32;
-using SlimDX;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -12,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Numerics;
 
 namespace DelaunatorSharp.WPF
 {
@@ -29,22 +29,22 @@ namespace DelaunatorSharp.WPF
 
 		private const string TimeFormat = @"hh\:mm\:ss";
 		#region Observables
-		private IObservable<Point> MouseMoveStream => Observable
+		private IObservable<Vector2> MouseMoveStream => Observable
 			.FromEventPattern<MouseEventArgs>(this, nameof(MouseMove))
 			.Select(x => x.EventArgs.GetPosition(this))
-			.Select(point => new Point(point.X, point.Y));
-		private IObservable<Point> MouseDownStream => Observable
+			.Select(point => new Vector2((float)point.X, (float)point.Y));
+		private IObservable<Vector2> MouseDownStream => Observable
 			.FromEventPattern<MouseEventArgs>(this, nameof(MouseLeftButtonDown))
 			.Select(evt => evt.EventArgs.GetPosition(this))
-			.Select(point => new Point(point.X, point.Y));
+			.Select(point => new Vector2((float)point.X, (float)point.Y));
 		private IObservable<TimeSpan> Interval(double time = 1) => Observable
 			.Interval(TimeSpan.FromSeconds(time))
 			.TimeInterval()
 			.Scan(TimeSpan.Zero, (result, item) => result += item.Interval)
-			.ObserveOn(Dispatcher);
+			.ObserveOn(System.Threading.SynchronizationContext.Current);
 		#endregion Observables
 		private bool IsLengthOfPointsValid => Points.Count > 2;
-		private readonly ObservableCollection<IPoint> Points = new ObservableCollection<IPoint>();
+		private readonly ObservableCollection<Vector2> Points = new ObservableCollection<Vector2>();
 
 		private bool displayPositionText;
 
@@ -55,7 +55,7 @@ namespace DelaunatorSharp.WPF
 
 			InitializeMouseStreams();
 
-			var mainDirectory = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\"));
+			var mainDirectory = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\"));
 			var filePath = System.IO.Path.Combine(mainDirectory, "samples.json");
 			LoadPoints(filePath);
 
@@ -81,7 +81,7 @@ namespace DelaunatorSharp.WPF
 			var minimumDistance = 40;
 			var width = (float)(ActualWidth != 0 ? ActualWidth : Width);
 			var height = (float)(ActualHeight != 0 ? ActualHeight : Height);
-			var samples = UniformPoissonDiskSampler.SampleCircle(new Vector2(width / 2, height / 3), 220, minimumDistance).Select(x => new Point(x.X, x.Y));
+			var samples = UniformPoissonDiskSampler.SampleCircle(new Vector2(width / 2, height / 3), 220, minimumDistance).Select(x => new Vector2(x.X, x.Y));
 
 			foreach (var sample in samples)
 			{
@@ -168,14 +168,14 @@ namespace DelaunatorSharp.WPF
 		}
 
 		#region Canvas
-		private void DrawCircles(IEnumerable<IPoint> points, Brush brush = null)
+		private void DrawCircles(IEnumerable<Vector2> points, Brush brush = null)
 		{
 			foreach (var point in points)
 			{
 				DrawCircle(point, brush);
 			}
 		}
-		private void DrawCircle(IPoint point, Brush brush = null)
+		private void DrawCircle(Vector2 point, Brush brush = null)
 		{
 			var ellipse = new Ellipse
 			{
@@ -207,7 +207,7 @@ namespace DelaunatorSharp.WPF
 			}
 		}
 
-		private void DrawLine(IPoint startPoint, IPoint endPoint, Brush stroke, double thickness = .3)
+		private void DrawLine(Vector2 startPoint, Vector2 endPoint, Brush stroke, double thickness = .3)
 		{
 			var line = new Line
 			{
@@ -301,7 +301,7 @@ namespace DelaunatorSharp.WPF
 				Points.Clear();
 				foreach (var point in loadedPoints)
 				{
-					Points.Add(point);
+					Points.Add(new Vector2((float)point.X,(float)point.Y));
 				}
 
 				Redraw();

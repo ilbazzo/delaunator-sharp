@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace DelaunatorSharp
 {
     public class Delaunator
     {
-        private readonly double EPSILON = Math.Pow(2, -52);
+        private readonly float EPSILON = MathF.Pow(2, -20);
         private readonly int[] EDGE_STACK = new int[512];
 
         /// <summary>
@@ -22,7 +23,7 @@ namespace DelaunatorSharp
         /// <summary>
         /// The initial points Delaunator was constructed with.
         /// </summary>
-        public IPoint[] Points { get; private set; }
+        public Vector2[] Points { get; private set; }
 
         /// <summary>
         /// A list of point indices that traverses the hull of the points.
@@ -35,15 +36,15 @@ namespace DelaunatorSharp
         private readonly int[] hullTri;
         private readonly int[] hullHash;
 
-        private double cx;
-        private double cy;
+        private float cx;
+        private float cy;
 
         private int trianglesLen;
-        private readonly double[] coords;
+        private readonly float[] coords;
         private readonly int hullStart;
         private readonly int hullSize;
 
-        public Delaunator(IPoint[] points)
+        public Delaunator(Vector2[] points)
         {
             if (points.Length < 3)
             {
@@ -51,7 +52,7 @@ namespace DelaunatorSharp
             }
 
             Points = points;
-            coords = new double[Points.Length * 2];
+            coords = new float[Points.Length * 2];
 
             for (var i = 0; i < Points.Length; i++)
             {
@@ -66,7 +67,7 @@ namespace DelaunatorSharp
             Triangles = new int[maxTriangles * 3];
 
             Halfedges = new int[maxTriangles * 3];
-            hashSize = (int)Math.Ceiling(Math.Sqrt(n));
+            hashSize = (int)MathF.Ceiling(MathF.Sqrt(n));
 
             hullPrev = new int[n];
             hullNext = new int[n];
@@ -75,10 +76,10 @@ namespace DelaunatorSharp
 
             var ids = new int[n];
 
-            var minX = double.PositiveInfinity;
-            var minY = double.PositiveInfinity;
-            var maxX = double.NegativeInfinity;
-            var maxY = double.NegativeInfinity;
+            var minX = float.PositiveInfinity;
+            var minY = float.PositiveInfinity;
+            var maxX = float.NegativeInfinity;
+            var maxY = float.NegativeInfinity;
 
             for (var i = 0; i < n; i++)
             {
@@ -94,7 +95,7 @@ namespace DelaunatorSharp
             var cx = (minX + maxX) / 2;
             var cy = (minY + maxY) / 2;
 
-            var minDist = double.PositiveInfinity;
+            var minDist = float.PositiveInfinity;
             var i0 = 0;
             var i1 = 0;
             var i2 = 0;
@@ -112,7 +113,7 @@ namespace DelaunatorSharp
             var i0x = coords[2 * i0];
             var i0y = coords[2 * i0 + 1];
 
-            minDist = double.PositiveInfinity;
+            minDist = float.PositiveInfinity;
 
             // find the point closest to the seed
             for (int i = 0; i < n; i++)
@@ -129,7 +130,7 @@ namespace DelaunatorSharp
             var i1x = coords[2 * i1];
             var i1y = coords[2 * i1 + 1];
 
-            var minRadius = double.PositiveInfinity;
+            var minRadius = float.PositiveInfinity;
 
             // find the third point which forms the smallest circumcircle with the first two
             for (int i = 0; i < n; i++)
@@ -145,7 +146,7 @@ namespace DelaunatorSharp
             var i2x = coords[2 * i2];
             var i2y = coords[2 * i2 + 1];
 
-            if (minRadius == double.PositiveInfinity)
+            if (minRadius == float.PositiveInfinity)
             {
                 throw new Exception("No Delaunay triangulation exists for this input.");
             }
@@ -167,7 +168,7 @@ namespace DelaunatorSharp
             this.cx = center.X;
             this.cy = center.Y;
 
-            var dists = new double[n];
+            var dists = new float[n];
             for (var i = 0; i < n; i++)
             {
                 dists[i] = Dist(coords[2 * i], coords[2 * i + 1], center.X, center.Y);
@@ -195,8 +196,8 @@ namespace DelaunatorSharp
             trianglesLen = 0;
             AddTriangle(i0, i1, i2, -1, -1, -1);
 
-            double xp = 0;
-            double yp = 0;
+            float xp = 0;
+            float yp = 0;
 
             for (var k = 0; k < ids.Length; k++)
             {
@@ -205,7 +206,7 @@ namespace DelaunatorSharp
                 var y = coords[2 * i + 1];
 
                 // skip near-duplicate points
-                if (k > 0 && Math.Abs(x - xp) <= EPSILON && Math.Abs(y - yp) <= EPSILON) continue;
+                if (k > 0 && MathF.Abs(x - xp) <= EPSILON && MathF.Abs(y - yp) <= EPSILON) continue;
                 xp = x;
                 yp = y;
 
@@ -399,7 +400,7 @@ namespace DelaunatorSharp
 
             return ar;
         }
-        private static bool InCircle(double ax, double ay, double bx, double by, double cx, double cy, double px, double py)
+        private static bool InCircle(float ax, float ay, float bx, float by, float cx, float cy, float px, float py)
         {
             var dx = ax - px;
             var dy = ay - py;
@@ -436,13 +437,13 @@ namespace DelaunatorSharp
             Halfedges[a] = b;
             if (b != -1) Halfedges[b] = a;
         }
-        private int HashKey(double x, double y) => (int)(Math.Floor(PseudoAngle(x - cx, y - cy) * hashSize) % hashSize);
-        private static double PseudoAngle(double dx, double dy)
+        private int HashKey(float x, float y) => (int)(MathF.Floor(PseudoAngle(x - cx, y - cy) * hashSize) % hashSize);
+        private static float PseudoAngle(float dx, float dy)
         {
-            var p = dx / (Math.Abs(dx) + Math.Abs(dy));
+            var p = dx / (MathF.Abs(dx) + MathF.Abs(dy));
             return (dy > 0 ? 3 - p : 1 + p) / 4; // [0..1]
         }
-        private static void Quicksort(int[] ids, double[] dists, int left, int right)
+        private static void Quicksort(int[] ids, float[] dists, int left, int right)
         {
             if (right - left <= 20)
             {
@@ -495,8 +496,8 @@ namespace DelaunatorSharp
             arr[i] = arr[j];
             arr[j] = tmp;
         }
-        private static bool Orient(double px, double py, double qx, double qy, double rx, double ry) => (qy - py) * (rx - qx) - (qx - px) * (ry - qy) < 0;
-        private static double Circumradius(double ax, double ay, double bx, double by, double cx, double cy)
+        private static bool Orient(float px, float py, float qx, float qy, float rx, float ry) => (qy - py) * (rx - qx) - (qx - px) * (ry - qy) < 0;
+        private static float Circumradius(float ax, float ay, float bx, float by, float cx, float cy)
         {
             var dx = bx - ax;
             var dy = by - ay;
@@ -504,12 +505,12 @@ namespace DelaunatorSharp
             var ey = cy - ay;
             var bl = dx * dx + dy * dy;
             var cl = ex * ex + ey * ey;
-            var d = 0.5 / (dx * ey - dy * ex);
+            var d = 0.5f / (dx * ey - dy * ex);
             var x = (ey * bl - dy * cl) * d;
             var y = (dx * cl - ex * bl) * d;
             return x * x + y * y;
         }
-        private static Point Circumcenter(double ax, double ay, double bx, double by, double cx, double cy)
+        private static Vector2 Circumcenter(float ax, float ay, float bx, float by, float cx, float cy)
         {
             var dx = bx - ax;
             var dy = by - ay;
@@ -517,13 +518,13 @@ namespace DelaunatorSharp
             var ey = cy - ay;
             var bl = dx * dx + dy * dy;
             var cl = ex * ex + ey * ey;
-            var d = 0.5 / (dx * ey - dy * ex);
+            var d = 0.5f / (dx * ey - dy * ex);
             var x = ax + (ey * bl - dy * cl) * d;
             var y = ay + (dx * cl - ex * bl) * d;
 
-            return new Point(x, y);
+            return new Vector2(x, y);
         }
-        private static double Dist(double ax, double ay, double bx, double by)
+        private static float Dist(float ax, float ay, float bx, float by)
         {
             var dx = ax - bx;
             var dy = ay - by;
@@ -551,7 +552,7 @@ namespace DelaunatorSharp
                 }
             }
         }
-        public IEnumerable<IEdge> GetVoronoiEdges(Func<int, IPoint> triangleVerticeSelector = null)
+        public IEnumerable<IEdge> GetVoronoiEdges(Func<int, Vector2> triangleVerticeSelector = null)
         {
             if (triangleVerticeSelector == null) triangleVerticeSelector = x => GetCentroid(x);
             for (var e = 0; e < Triangles.Length; e++)
@@ -568,12 +569,12 @@ namespace DelaunatorSharp
         public IEnumerable<IEdge> GetVoronoiEdgesBasedOnCircumCenter() => GetVoronoiEdges(GetTriangleCircumcenter);
         public IEnumerable<IEdge> GetVoronoiEdgesBasedOnCentroids() => GetVoronoiEdges(GetCentroid);
 
-        public IEnumerable<IVoronoiCell> GetVoronoiCells(Func<int, IPoint> triangleVerticeSelector = null)
+        public IEnumerable<IVoronoiCell> GetVoronoiCells(Func<int, Vector2> triangleVerticeSelector = null)
         {
             if (triangleVerticeSelector == null) triangleVerticeSelector = x => GetCentroid(x);
 
             var seen = new HashSet<int>();
-            var vertices = new List<IPoint>(10);    // Keep it outside the loop, reuse capacity, less resizes.
+            var vertices = new List<Vector2>(10);    // Keep it outside the loop, reuse capacity, less resizes.
 
             for (var e = 0; e < Triangles.Length; e++)
             {
@@ -597,11 +598,11 @@ namespace DelaunatorSharp
 
         public IEnumerable<IEdge> GetHullEdges() => CreateHull(GetHullPoints());
 
-        public IPoint[] GetHullPoints() => Array.ConvertAll<int, IPoint>(Hull, (x) => Points[x]);
+        public Vector2[] GetHullPoints() => Array.ConvertAll<int, Vector2>(Hull, (x) => Points[x]);
 
-        public IPoint[] GetTrianglePoints(int t)
+        public Vector2[] GetTrianglePoints(int t)
         {
-            var points = new List<IPoint>();
+            var points = new List<Vector2>();
             foreach (var p in PointsOfTriangle(t))
             {
                 points.Add(Points[p]);
@@ -609,9 +610,9 @@ namespace DelaunatorSharp
             return points.ToArray();
         }
 
-        public IPoint[] GetRellaxedPoints()
+        public Vector2[] GetRellaxedPoints()
         {
-            var points = new List<IPoint>();
+            var points = new List<Vector2>();
             foreach (var cell in GetVoronoiCellsBasedOnCircumcenters())
             {
                 points.Add(GetCentroid(cell.Points));
@@ -620,24 +621,24 @@ namespace DelaunatorSharp
         }
 
         public IEnumerable<IEdge> GetEdgesOfTriangle(int t) => CreateHull(EdgesOfTriangle(t).Select(e => Points[Triangles[e]]));
-        public static IEnumerable<IEdge> CreateHull(IEnumerable<IPoint> points) => points.Zip(points.Skip(1).Append(points.FirstOrDefault()), (a, b) => new Edge(0, a, b)).OfType<IEdge>();
-        public IPoint GetTriangleCircumcenter(int t)
+        public static IEnumerable<IEdge> CreateHull(IEnumerable<Vector2> points) => points.Zip(points.Skip(1).Append(points.FirstOrDefault()), (a, b) => new Edge(0, a, b)).OfType<IEdge>();
+        public Vector2 GetTriangleCircumcenter(int t)
         {
             var vertices = GetTrianglePoints(t);
             return GetCircumcenter(vertices[0], vertices[1], vertices[2]);
         }
-        public IPoint GetCentroid(int t)
+        public Vector2 GetCentroid(int t)
         {
             var vertices = GetTrianglePoints(t);
             return GetCentroid(vertices);
         }
-        public static IPoint GetCircumcenter(IPoint a, IPoint b, IPoint c) => Circumcenter(a.X, a.Y, b.X, b.Y, c.X, c.Y);
+        public static Vector2 GetCircumcenter(Vector2 a, Vector2 b, Vector2 c) => Circumcenter(a.X, a.Y, b.X, b.Y, c.X, c.Y);
 
-        public static IPoint GetCentroid(IPoint[] points)
+        public static Vector2 GetCentroid(Vector2[] points)
         {
-            double accumulatedArea = 0.0f;
-            double centerX = 0.0f;
-            double centerY = 0.0f;
+            float accumulatedArea = 0.0f;
+            float centerX = 0.0f;
+            float centerY = 0.0f;
 
             for (int i = 0, j = points.Length - 1; i < points.Length; j = i++)
             {
@@ -647,11 +648,11 @@ namespace DelaunatorSharp
                 centerY += (points[i].Y + points[j].Y) * temp;
             }
 
-            if (Math.Abs(accumulatedArea) < 1E-7f)
-                return new Point();
+            if (MathF.Abs(accumulatedArea) < 1E-7f)
+                return new Vector2();
 
             accumulatedArea *= 3f;
-            return new Point(centerX / accumulatedArea, centerY / accumulatedArea);
+            return new Vector2(centerX / accumulatedArea, centerY / accumulatedArea);
         }
 
         #endregion GetMethods
@@ -694,7 +695,7 @@ namespace DelaunatorSharp
             }
         }
 
-        public void ForEachVoronoiCell(Action<IVoronoiCell> callback, Func<int, IPoint> triangleVertexSelector = null)
+        public void ForEachVoronoiCell(Action<IVoronoiCell> callback, Func<int, Vector2> triangleVertexSelector = null)
         {
             foreach (var cell in GetVoronoiCells(triangleVertexSelector))
             {

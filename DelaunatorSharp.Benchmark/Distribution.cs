@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace DelaunatorSharp.Benchmark
 {
@@ -9,7 +10,7 @@ namespace DelaunatorSharp.Benchmark
         private Random random = new Random();
         public enum Type { Uniform, Gaussian, Grid };
 
-        public IEnumerable<IPoint> GetPoints(Type type, int count)
+        public IEnumerable<Vector2> GetPoints(Type type, int count)
         {
             switch (type)
             {
@@ -18,32 +19,32 @@ namespace DelaunatorSharp.Benchmark
                 case Type.Grid: return Grid(count);
             }
 
-            return Enumerable.Empty<IPoint>();
+            return Enumerable.Empty<Vector2>();
         }
 
-        public IEnumerable<IPoint> Uniform(int count)
+        public IEnumerable<Vector2> Uniform(int count)
         {
             for (var i = 0; i < count; i++)
-                yield return new Point(random.NextDouble() * Math.Pow(10, 3), random.NextDouble() * Math.Pow(10, 3));
+                yield return new Vector2((float)random.NextDouble() * MathF.Pow(10, 3), (float)random.NextDouble() * MathF.Pow(10, 3));
         }
 
-        public IEnumerable<IPoint> Grid(int count)
+        public IEnumerable<Vector2> Grid(int count)
         {
             var size = Math.Sqrt(count);
             for (var i = 0; i < size; i++)
                 for (var j = 0; j < size; j++)
-                    yield return new Point(i, j);
+                    yield return new Vector2(i, j);
         }
-        public IEnumerable<IPoint> Gaussian(int count)
+        public IEnumerable<Vector2> Gaussian(int count)
         {
             for (var i = 0; i < count; i++)
-                yield return new Point(PseudoNormal() * Math.Pow(10, 3), PseudoNormal() * Math.Pow(10, 3));
+                yield return new Vector2(PseudoNormal() * MathF.Pow(10, 3), PseudoNormal() * MathF.Pow(10, 3));
         }
 
-        private double PseudoNormal()
+        private float PseudoNormal()
         {
-            var v = random.NextDouble() + random.NextDouble() + random.NextDouble() + random.NextDouble() + random.NextDouble() + random.NextDouble();
-            return Math.Min(0.5 * (v - 3) / 3, 1);
+            var v = (float)(random.NextDouble() + random.NextDouble() + random.NextDouble() + random.NextDouble() + random.NextDouble() + random.NextDouble());
+            return MathF.Min(0.5f * (v - 3) / 3, 1);
         }
     }
 
